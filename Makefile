@@ -1,5 +1,5 @@
 MAKEOPTS := -j5
-CFLAGS=-Wall -g
+CFLAGS := -Wall -Werror -g
 
 9cc: 9cc.c
 
