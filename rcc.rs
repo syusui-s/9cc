@@ -1,3 +1,6 @@
+use std::iter::Peekable;
+use std::str::Chars;
+
 #[derive(Debug, Clone, PartialEq)]
 enum Token {
     Plus,
@@ -5,39 +8,44 @@ enum Token {
     Int64(i64),
 }
 
+fn tokenize_number(chars: &mut Peekable<Chars>) -> Result<Token, String> {
+    use std::num::ParseIntError;
+
+    let mut value = String::new();
+
+    while let Some(&c) = chars.peek() {
+        if c.is_numeric() {
+            value.push(c);
+            chars.next();
+        } else {
+            break;
+        }
+    }
+
+    let value = value.parse().map_err(|err| match err {
+        ParseIntError { .. } => "Overflow".to_owned(),
+    })?;
+
+    Ok(Token::Int64(value))
+}
+
 fn tokenize(input: &str) -> Result<Vec<Token>, String> {
     let mut chars = input.chars().peekable();
     let mut result = Vec::new();
 
-    while let Some(ch) = chars.next() {
+    while let Some(&ch) = chars.peek() {
         use Token::*;
-        use std::num::ParseIntError;
 
         match ch {
             ' ' => (),
             '+' => result.push(Plus),
             '-' => result.push(Minus),
-            number if number.is_numeric() => {
-                let mut value = String::new();
-                value.push(ch);
-
-                while let Some(&c) = chars.peek() {
-                    if c.is_numeric() {
-                        value.push(c);
-                        chars.next();
-                    } else {
-                        break;
-                    }
-                }
-
-                let value = value.parse().map_err(|err| match err {
-                    ParseIntError { .. } => "Overflow".to_owned(),
-                })?;
-
-                result.push(Int64(value))
-            },
+            number if number.is_numeric() =>
+                result.push(tokenize_number(&mut chars)?),
             _ => return Err(format!("unknown character: {}", ch)),
         }
+
+        chars.next();
     }
 
     Ok(result)
