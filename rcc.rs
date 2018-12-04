@@ -8,7 +8,13 @@ enum Token {
     Int64(i64),
 }
 
-fn tokenize_number(chars: &mut Peekable<Chars>) -> Result<Token, String> {
+#[derive(Debug, Clone, PartialEq)]
+enum TokenizeError {
+    ParseIntError,
+    IllegalCharacter(char),
+}
+
+fn tokenize_number(chars: &mut Peekable<Chars>) -> Result<Token, TokenizeError> {
     use std::num::ParseIntError;
 
     let mut value = String::new();
@@ -17,19 +23,20 @@ fn tokenize_number(chars: &mut Peekable<Chars>) -> Result<Token, String> {
         if c.is_numeric() {
             value.push(c);
             chars.next();
-        } else {
-            break;
+            continue;
         }
+
+        break;
     }
 
     let value = value.parse().map_err(|err| match err {
-        ParseIntError { .. } => "Overflow".to_owned(),
+        ParseIntError { .. } => TokenizeError::ParseIntError,
     })?;
 
     Ok(Token::Int64(value))
 }
 
-fn tokenize(input: &str) -> Result<Vec<Token>, String> {
+fn tokenize(input: &str) -> Result<Vec<Token>, TokenizeError> {
     let mut chars = input.chars().peekable();
     let mut result = Vec::new();
 
@@ -40,9 +47,11 @@ fn tokenize(input: &str) -> Result<Vec<Token>, String> {
             ' ' => (),
             '+' => result.push(Plus),
             '-' => result.push(Minus),
-            number if number.is_numeric() =>
-                result.push(tokenize_number(&mut chars)?),
-            _ => return Err(format!("unknown character: {}", ch)),
+            number if number.is_numeric() => {
+                result.push(tokenize_number(&mut chars)?);
+                continue;
+            },
+            _ => return Err(TokenizeError::IllegalCharacter(ch)),
         }
 
         chars.next();
@@ -52,11 +61,11 @@ fn tokenize(input: &str) -> Result<Vec<Token>, String> {
 }
 
 fn main() {
-    match tokenize("221 + 212") {
+    match tokenize("1+2") {
         Ok(ok) =>
             println!("OK: {:?}", ok),
         Err(err) =>
-            println!("ERROR: {}", err),
+            println!("ERROR: {:?}", err),
     }
 }
 
