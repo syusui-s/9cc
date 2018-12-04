@@ -5,6 +5,8 @@ use std::str::Chars;
 enum Token {
     Plus,
     Minus,
+    Asterisk,
+    Slash,
     Int64(i64),
 }
 
@@ -47,6 +49,8 @@ fn tokenize(input: &str) -> Result<Vec<Token>, TokenizeError> {
             ' ' => (),
             '+' => result.push(Plus),
             '-' => result.push(Minus),
+            '*' => result.push(Asterisk),
+            '/' => result.push(Slash),
             number if number.is_numeric() => {
                 result.push(tokenize_number(&mut chars)?);
                 continue;
@@ -89,6 +93,28 @@ fn test_tokenize() {
     let expected = vec![
         Int64(1),
         Minus,
+        Int64(2),
+    ];
+
+    assert!(result == Ok(expected));
+
+    /*******************************************/
+
+    let result = tokenize("5 / 2");
+    let expected = vec![
+        Int64(5),
+        Slash,
+        Int64(2),
+    ];
+
+    assert!(result == Ok(expected));
+
+    /*******************************************/
+
+    let result = tokenize("5 * 2");
+    let expected = vec![
+        Int64(5),
+        Asterisk,
         Int64(2),
     ];
 
