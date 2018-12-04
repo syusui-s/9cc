@@ -97,10 +97,12 @@ fn test_tokenize() {
     /*******************************************/
 
     let result = tokenize("$#!");
-    assert!(result.is_err());
+    let expected = TokenizeError::IllegalCharacter('$');
+    assert!(result == Err(expected));
 
     /*******************************************/
 
     let result = tokenize("0 - 12345678901234567890");
-    assert!(result.is_err());
+    let expected = TokenizeError::ParseIntError;
+    assert!(result == Err(expected));
 }
