@@ -1,9 +1,11 @@
-jobs:
-    include:
-        - stage: "テスト"
-          name: "9cc"
-          script: ./9cc/test.sh
-        - name: "rcc"
-          laungage: rust
-          rust:
-              - stable
+matrix:
+  include:
+    - language: c
+      compiler: gcc
+      script: cd 9cc && make && ./test.sh
+
+    - language: rust
+      rust:
+        - stable
+
+# vim:ft=yaml et ts=2 sw=2:
