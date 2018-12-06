@@ -1,0 +1,9 @@
+jobs:
+    include:
+        - stage: "テスト"
+          name: "9cc"
+          script: ./9cc/test.sh
+        - name: "rcc"
+          laungage: rust
+          rust:
+              - stable
