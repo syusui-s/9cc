@@ -2,10 +2,15 @@ matrix:
   include:
     - language: c
       compiler: gcc
-      script: cd 9cc && make && ./test.sh
+      script:
+        - cd 9cc
+        - make
+        - ./test.sh
 
     - language: rust
-      rust:
-        - stable
+      script:
+        - cd rcc
+        - cargo build --verbose --all
+        - cargo test --verbose --all
 
 # vim:ft=yaml et ts=2 sw=2:
