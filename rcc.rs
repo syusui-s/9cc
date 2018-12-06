@@ -73,18 +73,17 @@ enum Program {
 
 #[derive(Debug, Clone, PartialEq)]
 enum Expr {
-    Add(Term, Box<Expr>),
-    Sub(Term, Box<Expr>),
-    Term(::Term),
+    Add(Multiply, Box<Expr>),
+    Sub(Multiply, Box<Expr>),
+    Multiply(::Multiply),
 }
 
-/*
+#[derive(Debug, Clone, PartialEq)]
 enum Multiply {
     Mul(Term, Box<Multiply>),
     Div(Term, Box<Multiply>),
-    Term(Term),
+    Term(::Term),
 }
-*/
 
 #[derive(Debug, Clone, PartialEq)]
 enum Term {
@@ -111,26 +110,49 @@ fn parse_program(tokens: &mut Peekable<Iter<Token>>) -> Result<Program, ParseErr
 
 fn parse_expr(tokens: &mut Peekable<Iter<Token>>) -> Result<Expr, ParseError> {
     use Token::*;
-    use Expr::*;
 
-    let lhs = parse_term(tokens)?;
+    let lhs = parse_multiply(tokens)?;
 
     if let Some(&tok) = tokens.peek() {
         let expr = match tok {
             Plus  => {
                 tokens.next();
-                Add(lhs, Box::new(parse_expr(tokens)?))
+                Expr::Add(lhs, Box::new(parse_expr(tokens)?))
             },
             Minus => {
                 tokens.next();
-                Sub(lhs, Box::new(parse_expr(tokens)?))
+                Expr::Sub(lhs, Box::new(parse_expr(tokens)?))
             },
-            tok => return Err(ParseError::UnexpectedToken(tok.clone())),
+            _ => Expr::Multiply(lhs),
         };
 
         Ok(expr)
     } else {
-        Ok(Expr::Term(lhs))
+        Ok(Expr::Multiply(lhs))
+    }
+}
+
+fn parse_multiply(tokens: &mut Peekable<Iter<Token>>) -> Result<Multiply, ParseError> {
+    use Token::*;
+
+    let lhs = parse_term(tokens)?;
+
+    if let Some(&tok) = tokens.peek() {
+        let multiply = match tok {
+            Asterisk => {
+                tokens.next();
+                Multiply::Mul(lhs, Box::new(parse_multiply(tokens)?))
+            },
+            Slash => {
+                tokens.next();
+                Multiply::Div(lhs, Box::new(parse_multiply(tokens)?))
+            },
+            _ => Multiply::Term(lhs),
+        };
+
+        Ok(multiply)
+    } else {
+        Ok(Multiply::Term(lhs))
     }
 }
 
@@ -170,14 +192,39 @@ fn test_parse() {
     let result = parse(&input);
     let expected = Program::Expr(
         Expr::Add(
-            Term::Int64(221),
-            Box::new(Expr::Term(Term::Int64(212)))
+            Multiply::Term(Term::Int64(221)),
+            Box::new(Expr::Multiply(Multiply::Term(Term::Int64(212))))
         )
     );
 
+    assert!(result == Ok(expected));
+
+    /*******************************************/
+
+    let input = vec![Int64(221), Plus, Int64(212), Asterisk, Int64(122)];
+
+    let result = parse(&input);
     println!("{:?}", result);
+    let expected = Program::Expr(
+        Expr::Add(
+            Multiply::Term(Term::Int64(221)),
+            Box::new(Expr::Multiply(Multiply::Mul(
+                Term::Int64(212),
+                Box::new(Multiply::Term(Term::Int64(122)))
+            )))
+        )
+    );
 
     assert!(result == Ok(expected));
+
+    /*******************************************/
+
+    let input = vec![Int64(221), Plus];
+
+    let result = parse(&input);
+    let expected = ParseError::UnexpectedEOF;
+
+    assert!(result == Err(expected));
 }
 
 #[test]
@@ -201,6 +248,23 @@ fn test_tokenize() {
         Int64(1),
         Minus,
         Int64(2),
+    ];
+
+    assert!(result == Ok(expected));
+
+    /*******************************************/
+
+    let result = tokenize("1+2-3*4/5");
+    let expected = vec![
+        Int64(1),
+        Plus,
+        Int64(2),
+        Minus,
+        Int64(3),
+        Asterisk,
+        Int64(4),
+        Slash,
+        Int64(5),
     ];
 
     assert!(result == Ok(expected));
