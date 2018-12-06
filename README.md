@@ -3,6 +3,10 @@
 
 [![Build Status](https://travis-ci.org/syusui-s/9cc.svg?branch=master)](https://travis-ci.org/syusui-s/9cc)
 
+参考文献
+-----
+* [低レイヤを知りたい人のための Cコンパイラ作成入門](https://www.sigbus.info/compilerbook/)
+
 LICENSE
 -----
 Copyright 2018 (c) Shusui MOYATANI
