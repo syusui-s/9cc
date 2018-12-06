@@ -113,23 +113,19 @@ fn parse_expr(tokens: &mut Peekable<Iter<Token>>) -> Result<Expr, ParseError> {
 
     let lhs = parse_multiply(tokens)?;
 
-    if let Some(&tok) = tokens.peek() {
-        let expr = match tok {
-            Plus  => {
-                tokens.next();
-                Expr::Add(lhs, Box::new(parse_expr(tokens)?))
-            },
-            Minus => {
-                tokens.next();
-                Expr::Sub(lhs, Box::new(parse_expr(tokens)?))
-            },
-            _ => Expr::Multiply(lhs),
-        };
+    let expr = match tokens.peek() {
+        Some(Plus)  => {
+            tokens.next();
+            Expr::Add(lhs, Box::new(parse_expr(tokens)?))
+        },
+        Some(Minus) => {
+            tokens.next();
+            Expr::Sub(lhs, Box::new(parse_expr(tokens)?))
+        },
+        _ => Expr::Multiply(lhs),
+    };
 
-        Ok(expr)
-    } else {
-        Ok(Expr::Multiply(lhs))
-    }
+    Ok(expr)
 }
 
 fn parse_multiply(tokens: &mut Peekable<Iter<Token>>) -> Result<Multiply, ParseError> {
@@ -137,23 +133,19 @@ fn parse_multiply(tokens: &mut Peekable<Iter<Token>>) -> Result<Multiply, ParseE
 
     let lhs = parse_term(tokens)?;
 
-    if let Some(&tok) = tokens.peek() {
-        let multiply = match tok {
-            Asterisk => {
-                tokens.next();
-                Multiply::Mul(lhs, Box::new(parse_multiply(tokens)?))
-            },
-            Slash => {
-                tokens.next();
-                Multiply::Div(lhs, Box::new(parse_multiply(tokens)?))
-            },
-            _ => Multiply::Term(lhs),
-        };
+    let multiply = match tokens.peek() {
+        Some(Asterisk) => {
+            tokens.next();
+            Multiply::Mul(lhs, Box::new(parse_multiply(tokens)?))
+        },
+        Some(Slash) => {
+            tokens.next();
+            Multiply::Div(lhs, Box::new(parse_multiply(tokens)?))
+        },
+        _ => Multiply::Term(lhs),
+    };
 
-        Ok(multiply)
-    } else {
-        Ok(Multiply::Term(lhs))
-    }
+    Ok(multiply)
 }
 
 fn parse_term(tokens: &mut Peekable<Iter<Token>>) -> Result<Term, ParseError> {
@@ -209,8 +201,8 @@ fn test_parse() {
         Expr::Add(
             Multiply::Term(Term::Int64(221)),
             Box::new(Expr::Multiply(Multiply::Mul(
-                Term::Int64(212),
-                Box::new(Multiply::Term(Term::Int64(122)))
+                    Term::Int64(212),
+                    Box::new(Multiply::Term(Term::Int64(122)))
             )))
         )
     );
