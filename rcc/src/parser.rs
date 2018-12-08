@@ -34,19 +34,21 @@ pub enum ParseError {
     UnexpectedEOF,
 }
 
-pub fn parse(tokens: &[Token]) -> Result<Program, ParseError> {
+type ParseResult<T> = Result<T, ParseError>;
+
+pub fn parse(tokens: &[Token]) -> ParseResult<Program> {
     let mut peekable = tokens.iter().peekable();
 
     parse_program(&mut peekable)
 }
 
-fn parse_program(tokens: &mut Peekable<Iter<Token>>) -> Result<Program, ParseError> {
+fn parse_program(tokens: &mut Peekable<Iter<Token>>) -> ParseResult<Program> {
     let result = Program::Expr(parse_expr(tokens)?);
 
     Ok(result)
 }
 
-fn parse_expr(tokens: &mut Peekable<Iter<Token>>) -> Result<Expr, ParseError> {
+fn parse_expr(tokens: &mut Peekable<Iter<Token>>) -> ParseResult<Expr> {
     use self::Token::*;
 
     let lhs = parse_multiply(tokens)?;
@@ -66,7 +68,7 @@ fn parse_expr(tokens: &mut Peekable<Iter<Token>>) -> Result<Expr, ParseError> {
     Ok(expr)
 }
 
-fn parse_multiply(tokens: &mut Peekable<Iter<Token>>) -> Result<Multiply, ParseError> {
+fn parse_multiply(tokens: &mut Peekable<Iter<Token>>) -> ParseResult<Multiply> {
     use self::Token::*;
 
     let lhs = parse_term(tokens)?;
@@ -86,7 +88,7 @@ fn parse_multiply(tokens: &mut Peekable<Iter<Token>>) -> Result<Multiply, ParseE
     Ok(multiply)
 }
 
-fn parse_term(tokens: &mut Peekable<Iter<Token>>) -> Result<Term, ParseError> {
+fn parse_term(tokens: &mut Peekable<Iter<Token>>) -> ParseResult<Term> {
     use self::Token::*;
 
     if let Some(&tok) = tokens.peek() {
