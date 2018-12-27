@@ -6,6 +6,17 @@ use tokenizer::Token;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Program {
+    Assignment(self::LValue),
+    Statement(self::Statement),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum LValue {
+    Identifier(String),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Statement {
     Expr(self::Expr),
 }
 
@@ -43,7 +54,7 @@ pub fn parse(tokens: &[Token]) -> ParseResult<Program> {
 }
 
 fn parse_program(tokens: &mut Peekable<Iter<Token>>) -> ParseResult<Program> {
-    let result = Program::Expr(parse_expr(tokens)?);
+    let result = Program::Statement(Statement::Expr(parse_expr(tokens)?));
 
     Ok(result)
 }
@@ -114,10 +125,12 @@ fn test_parse() {
     let input = vec![Int64(221), Plus, Int64(212)];
 
     let result = parse(&input);
-    let expected = Program::Expr(
-        Expr::Add(
-            Multiply::Term(Term::Int64(221)),
-            Box::new(Expr::Multiply(Multiply::Term(Term::Int64(212))))
+    let expected = Program::Statement(
+        Statement::Expr(
+            Expr::Add(
+                Multiply::Term(Term::Int64(221)),
+                Box::new(Expr::Multiply(Multiply::Term(Term::Int64(212))))
+            )
         )
     );
 
@@ -129,13 +142,15 @@ fn test_parse() {
 
     let result = parse(&input);
     println!("{:?}", result);
-    let expected = Program::Expr(
-        Expr::Add(
-            Multiply::Term(Term::Int64(221)),
-            Box::new(Expr::Multiply(Multiply::Mul(
-                    Term::Int64(212),
-                    Box::new(Multiply::Term(Term::Int64(122)))
-            )))
+    let expected = Program::Statement(
+        Statement::Expr(
+            Expr::Add(
+                Multiply::Term(Term::Int64(221)),
+                Box::new(Expr::Multiply(Multiply::Mul(
+                        Term::Int64(212),
+                        Box::new(Multiply::Term(Term::Int64(122)))
+                )))
+            )
         )
     );
 

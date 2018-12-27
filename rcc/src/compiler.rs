@@ -38,7 +38,14 @@ pub fn compile(program: Program) -> Assembly {
 
 fn compile_program(program: Program) -> Assembly {
     match program {
-        Program::Expr(expr) => compile_expr(expr),
+        Program::Statement(statement) => compile_statement(statement),
+        Program::Assignment(_) => panic!("Not Implemented"),
+    }
+}
+
+fn compile_statement(statement: Statement) -> Assembly {
+    match statement {
+        Statement::Expr(expr) => compile_expr(expr),
     }
 }
 

@@ -7,7 +7,9 @@ pub enum Token {
     Minus,
     Asterisk,
     Slash,
+    Equal,
     Int64(i64),
+    Identifier(String),
 }
 
 #[derive(Debug, Clone, PartialEq)]

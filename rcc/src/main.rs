@@ -5,8 +5,14 @@ mod tokenizer;
 mod parser;
 mod compiler;
 
+use std::io::{self, Read};
+
 fn main() {
-    let tokens = tokenizer::tokenize("1 + 2 + 3 + 4 + 5 + 2 * 3 + 7 + 2 * 4 + 3 * 3 + 10")
+    let mut buffer = String::new();
+    io::stdin().read_to_string(&mut buffer)
+        .expect("標準入力が壊れた");
+
+    let tokens = tokenizer::tokenize(&buffer)
         .expect("字句解析に失敗しました");
     let ast = parser::parse(&tokens)
         .expect("構文解析に失敗しました");
